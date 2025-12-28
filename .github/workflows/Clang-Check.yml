@@ -1,0 +1,31 @@
+name: Clang Format Check
+
+on:
+  pull_request:
+    paths:
+      - '**/*.c'
+      - '**/*.cpp'
+      - '**/*.h'
+      - '**/*.hpp'
+
+jobs:
+  format-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - name: Install clang tools
+        run: sudo apt-get install -y clang-format clang-tidy build-essential
+      - name: Clone formatting rules
+        run: git clone https://github.com/amaraoussama94/clang-formatiing rules
+      - name: Run clang-format check
+        run: |
+          for file in $(git diff --name-only ${{ github.base_ref }} ${{ github.head_ref }} | grep -E '\.(c|cpp|h|hpp)$'); do
+            clang-format --style=file --dry-run --Werror $file || exit 1
+          done
+      - name: Run clang-tidy check
+        run: |
+          for file in $(git diff --name-only ${{ github.base_ref }} ${{ github.head_ref }} | grep -E '\.(c|cpp)$'); do
+            clang-tidy $file --config-file=rules/.clang-tidy || exit 1
+          done
+      - name: Build project
+        run: make
