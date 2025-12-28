@@ -13,6 +13,20 @@ ChatSphere is a versatile, cross-platform chat application designed to facilitat
 - **In-App Games**: Play simple games directly within the chat environment to enhance user interaction.
 - **Extensible Architecture**: Modular design allows for easy addition of new features like voice chat or video calls.
 
+## Development
+
+### Coding Standards
+
+ChatSphere follows universal C++ coding standards enforced by clang-format and clang-tidy. The project uses LLVM-based formatting rules and a comprehensive set of static analysis checks.
+
+- **Formatting**: Code is automatically formatted using clang-format with the provided `.clang-format` configuration.
+- **Linting**: clang-tidy checks for code quality, performance, and best practices.
+- **CI Enforcement**: All pull requests must pass clang-format and clang-tidy checks.
+
+### VS Code Configuration
+
+The `.vscode/settings.json` file configures VS Code to use the project's clang-format and clang-tidy settings for consistent development experience.
+
 ## Getting Started
 
 ### Installation
@@ -41,7 +55,5 @@ The application leverages socket-based communication for reliability and low lat
 
 ## Documentation
 
-- [User Manual](docs/USER_MANUAL.md): Detailed guide for using ChatSphere.
 - [Architecture](docs/ARCHITECTURE.md): Technical overview of the system design.
-- [Changelog](CHANGELOG.md): Version history and release notes.
 - [Contributing](CONTRIBUTING.md): Guidelines for contributors.
