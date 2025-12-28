@@ -1,0 +1,71 @@
+name: PR Validation
+
+on:
+  pull_request_target:
+    types: [opened, edited, synchronize]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    permissions:
+      pull-requests: write
+      statuses: write
+    steps:
+    - uses: actions/github-script@v6
+      with:
+        script: |
+          const pr = context.payload.pull_request;
+          const body = pr.body || '';
+          
+          let valid = true;
+          let message = 'PR validation passed!';
+          
+          // Check Description
+          const descMatch = body.match(/## Description\s*\n\s*(.+?)\s*\n/);
+          if (!descMatch || descMatch[1].trim() === 'Brief description of the changes.' || descMatch[1].trim() === '') {
+            valid = false;
+            message += '\n- Description must be filled out.';
+          }
+          
+          // Check Type of Change: at least one checked
+          if (!body.includes('[x] Bug fix') && !body.includes('[x] New feature') && !body.includes('[x] Breaking change') && !body.includes('[x] Documentation update')) {
+            valid = false;
+            message += '\n- At least one Type of Change must be selected.';
+          }
+          
+          // Check Checklist: all must be checked
+          const requiredChecks = [
+            'My code follows the project\'s style guidelines',
+            'I have performed a self-review of my own code',
+            'I have commented my code, particularly in hard-to-understand areas',
+            'My changes generate no new warnings',
+            'I have added tests that prove my fix is effective or that my feature works',
+            'New and existing unit tests pass locally with my changes'
+          ];
+          
+          for (const check of requiredChecks) {
+            if (!body.includes(`[x] ${check}`)) {
+              valid = false;
+              message += `\n- Checklist item "${check}" must be checked.`;
+            }
+          }
+          
+          if (!valid) {
+            github.rest.issues.createComment({
+              issue_number: pr.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: `## PR Validation Failed\n${message}\n\nPlease update your PR description to meet the requirements.`
+            });
+          }
+          
+          // Set status
+          const status = valid ? 'success' : 'failure';
+          github.rest.repos.createCommitStatus({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            sha: pr.head.sha,
+            state: status,
+            context: 'PR Template Validation',
+            description: valid ? 'All template requirements met' : 'Template not fully filled'
+          });
